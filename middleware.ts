@@ -1,21 +1,16 @@
-// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-// تعریف مسیرهای عمومی که نیاز به احراز هویت ندارند
 const publicPaths = ["/", "/auth/login", "/auth/register"];
-
-// تعریف مسیرهای محافظت شده که نیاز به احراز هویت دارند
 const protectedPaths = ["/dashboard"];
 
 export async function middleware(request: NextRequest) {
-  // دریافت توکن با تنظیمات کامل
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
     secureCookie: process.env.NODE_ENV === "production",
-    cookieName: "next-auth.session-token", // اضافه کردن نام دقیق کوکی
+    cookieName: "next-auth.session-token",
   });
 
   const { pathname } = request.nextUrl;
@@ -50,14 +45,6 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// تعریف دقیق‌تر matcher برای بهینه‌سازی عملکرد
 export const config = {
-  matcher: [
-    // مسیرهای محافظت شده
-    "/dashboard/:path*",
-    // مسیرهای احراز هویت
-    "/auth/:path*",
-    // صفحه اصلی
-    "/",
-  ],
+  matcher: ["/dashboard/:path*", "/auth/:path*", "/"],
 };

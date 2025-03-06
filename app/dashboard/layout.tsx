@@ -1,4 +1,3 @@
-// app/dashboard/layout.tsx
 import React from "react";
 import { Metadata } from "next";
 
@@ -12,7 +11,6 @@ export const metadata: Metadata = {
   description: "Admin dashboard for managing your application",
 };
 
-// Server component layout
 export default function DashboardLayout({
   children,
 }: {

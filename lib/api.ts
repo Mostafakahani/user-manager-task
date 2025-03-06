@@ -1,136 +1,113 @@
-// lib/api.ts
-import { UserFormData } from "@/types/user";
+import { User, UserResponse, UserFormData } from "@/types/user";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://reqres.in/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+console.log("API_BASE_URL:", API_BASE_URL);
 
-export async function fetchUsers(page = 1, token?: string) {
+export async function fetchUsers(
+  // page: number = 1,
+  token?: string
+): Promise<UserResponse> {
+  const url = `${API_BASE_URL}/api/users`;
+  console.log("Fetching users from:", url);
+
   try {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${API_URL}/users?page=${page}`, {
-      next: { revalidate: 60 }, // Revalidate every minute
-      headers,
+    const response = await fetch(url, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
     });
 
     if (!response.ok) {
-      throw new Error("Failed to fetch users");
+      const errorText = await response.text();
+      console.error(
+        `Failed to fetch users - Status: ${response.status}, Response: ${errorText}`
+      );
+      throw new Error(
+        `Failed to fetch users: ${response.status} ${response.statusText}`
+      );
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log(`Successfully fetched ${data.data?.length || 0} users`);
+    return data;
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.error("Error in fetchUsers:", error);
     throw error;
   }
 }
 
-export async function fetchUser(id: string, token?: string) {
-  try {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
+export async function fetchUser(
+  id: string,
+  token?: string
+): Promise<{ data: User }> {
+  const response = await fetch(`${API_BASE_URL}/api/users?id=${id}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
 
-    const response = await fetch(`${API_URL}/users/${id}`, {
-      next: { revalidate: 60 },
-      headers,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch user with id ${id}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error(`Error fetching user ${id}:`, error);
-    throw error;
+  if (!response.ok) {
+    throw new Error("Failed to fetch user");
   }
+
+  return response.json();
 }
 
-// Add other API functions
-export async function createUser(userData: UserFormData, token?: string) {
-  try {
-    const headers: Record<string, string> = {
+export async function createUserApi(
+  userData: UserFormData,
+  token?: string
+): Promise<User> {
+  const response = await fetch(`${API_BASE_URL}/api/users`, {
+    method: "POST",
+    headers: {
       "Content-Type": "application/json",
-    };
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(userData),
+  });
 
-    const response = await fetch(`${API_URL}/users`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(userData),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to create user");
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error creating user:", error);
-    throw error;
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to create user");
   }
+
+  return response.json();
 }
 
-export async function updateUser(
+export async function updateUserApi(
   id: string,
   userData: UserFormData,
   token?: string
-) {
-  try {
-    const headers: Record<string, string> = {
+): Promise<User> {
+  const response = await fetch(`${API_BASE_URL}/api/users?id=${id}`, {
+    method: "PUT",
+    headers: {
       "Content-Type": "application/json",
-    };
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(userData),
+  });
 
-    const response = await fetch(`${API_URL}/users/${id}`, {
-      method: "PUT",
-      headers,
-      body: JSON.stringify(userData),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to update user with id ${id}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error(`Error updating user ${id}:`, error);
-    throw error;
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to update user");
   }
+
+  return response.json();
 }
 
-export async function deleteUser(id: string, token?: string) {
-  try {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
+export async function deleteUser(id: string, token?: string): Promise<boolean> {
+  const response = await fetch(`${API_BASE_URL}/api/users?id=${id}`, {
+    method: "DELETE",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
 
-    const response = await fetch(`${API_URL}/users/${id}`, {
-      method: "DELETE",
-      headers,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to delete user with id ${id}`);
-    }
-
-    return true;
-  } catch (error) {
-    console.error(`Error deleting user ${id}:`, error);
-    throw error;
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to delete user");
   }
+
+  return true;
 }

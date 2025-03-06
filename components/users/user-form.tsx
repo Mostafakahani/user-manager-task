@@ -1,4 +1,3 @@
-// components/users/user-form.tsx
 "use client";
 import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -6,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { User, UserFormData } from "@/types/user";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { createUserApi, updateUserApi } from "@/lib/api";
 
 interface UserFormProps {
   user?: User;
@@ -19,6 +19,7 @@ export default function UserForm({ user, isEditing = false }: UserFormProps) {
     last_name: user?.last_name || "",
     email: user?.email || "",
     avatar: user?.avatar || "",
+    password: user?.password || "",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -32,6 +33,7 @@ export default function UserForm({ user, isEditing = false }: UserFormProps) {
         last_name: user.last_name,
         email: user.email,
         avatar: user.avatar,
+        password: user.password,
       });
     }
   }, [user]);
@@ -51,42 +53,29 @@ export default function UserForm({ user, isEditing = false }: UserFormProps) {
     setSuccess("");
 
     try {
-      const url = isEditing ? `/api/users?id=${user?.id}` : "/api/users";
-      const method = isEditing ? "PUT" : "POST";
+      if (isEditing && user) {
+        await updateUserApi(
+          user.id.toString(),
+          formData,
+          (session as any)?.accessToken
+        );
+        setSuccess("User updated successfully!");
+      } else {
+        await createUserApi(formData, (session as any)?.accessToken);
+        setSuccess("User created successfully!");
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${(session as any)?.accessToken || ""}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Operation failed");
-      }
-
-      setSuccess(
-        isEditing ? "User updated successfully!" : "User created successfully!"
-      );
-
-      if (!isEditing) {
-        // Reset form after successful creation
         setFormData({
           first_name: "",
           last_name: "",
           email: "",
           avatar: "",
+          password: "",
         });
       }
 
-      // Redirect to users list after a short delay
       setTimeout(() => {
         router.push("/dashboard/users");
-        router.refresh(); // Refresh the users list to reflect changes
+        router.refresh();
       }, 1500);
     } catch (error) {
       console.error(
@@ -205,7 +194,7 @@ export default function UserForm({ user, isEditing = false }: UserFormProps) {
               />
             </div>
 
-            <div className="col-span-6 sm:col-span-4">
+            <div className="col-span-6 sm:col-span-3">
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700"
@@ -217,6 +206,23 @@ export default function UserForm({ user, isEditing = false }: UserFormProps) {
                 name="email"
                 id="email"
                 value={formData.email}
+                onChange={handleChange}
+                required
+                className="mt-1"
+              />
+            </div>
+            <div className="col-span-6 sm:col-span-3">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Password
+              </label>
+              <Input
+                type="password"
+                name="password"
+                id="password"
+                value={formData.password}
                 onChange={handleChange}
                 required
                 className="mt-1"

@@ -4,6 +4,7 @@ export interface User {
   first_name: string;
   last_name: string;
   avatar: string;
+  password: string;
 }
 
 export interface UserResponse {
@@ -19,6 +20,7 @@ export interface UserFormData {
   last_name: string;
   email: string;
   avatar?: string;
+  password: string;
 }
 
 export interface ApiResponse<T> {

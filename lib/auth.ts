@@ -3,8 +3,9 @@ import { NextAuthOptions } from "next-auth";
 import Auth0Provider from "next-auth/providers/auth0";
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { User, Session } from "next-auth";
+import { checkUserCredentials } from "./user-data-service";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://reqres.in/api";
+// const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface CustomUser extends User {
   accessToken?: string;
@@ -34,7 +35,7 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
@@ -42,39 +43,20 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        try {
-          const response = await fetch(`${API_URL}/login`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password,
-            }),
-          });
+        const user = await checkUserCredentials(
+          credentials.email,
+          credentials.password
+        );
 
-          const data = await response.json();
-
-          if (response.ok && data.token) {
-            return {
-              id: "1",
-              email: credentials.email,
-              name: credentials.email.split("@")[0],
-              token: data.token,
-            };
-          }
-
-          return null;
-        } catch (error) {
-          console.error("Authentication error:", error);
-          return null;
+        if (user) {
+          return user;
         }
+        return null;
       },
     }),
   ],
   pages: {
-    signIn: "/auth/login",
+    signIn: "/auth/signin",
     signOut: "/auth/logout",
     error: "/auth/error",
   },

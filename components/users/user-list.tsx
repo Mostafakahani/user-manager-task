@@ -14,7 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -22,9 +21,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
-interface UserListProps {
+export interface UserListProps {
   initialUsers: {
     data: User[];
     page: number;
@@ -44,12 +42,11 @@ export default function UserList({ initialUsers }: UserListProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedViewUser, setSelectedViewUser] = useState<User | null>(null);
-  const router = useRouter();
 
-  const loadUsers = async (pageNum: number) => {
+  const loadUsers = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchUsers(pageNum, (session as any)?.accessToken);
+      const data = await fetchUsers((session as any)?.accessToken);
       setUsers(data.data);
       setPage(data.page);
       setTotalPages(data.total_pages);
@@ -62,7 +59,7 @@ export default function UserList({ initialUsers }: UserListProps) {
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= totalPages) {
-      loadUsers(newPage);
+      loadUsers();
     }
   };
 
@@ -79,9 +76,14 @@ export default function UserList({ initialUsers }: UserListProps) {
         selectedUser.id.toString(),
         (session as any)?.accessToken
       );
+
+      // Remove user from the local state
       setUsers(users.filter((user) => user.id !== selectedUser.id));
       setIsDeleteModalOpen(false);
       setSelectedUser(null);
+
+      // Reload users to update pagination info
+      loadUsers();
     } catch (error) {
       console.error("Error deleting user:", error);
     }
@@ -142,15 +144,6 @@ export default function UserList({ initialUsers }: UserListProps) {
                             <Button
                               variant="default"
                               size="sm"
-                              onClick={() =>
-                                router.push(`/dashboard/users/${user.id}/edit`)
-                              }
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
                               onClick={() => handleDelete(user)}
                             >
                               Delete
@@ -164,56 +157,48 @@ export default function UserList({ initialUsers }: UserListProps) {
               </div>
 
               {/* Mobile View */}
-              <div className="md:hidden space-y-4">
-                {users.map((user) => (
-                  <div
-                    key={user.id}
-                    className="bg-white p-4 rounded-lg shadow space-y-3"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Image
-                        className="h-10 w-10 rounded-full"
-                        src={user.avatar || "/default-avatar.png"}
-                        alt={`${user.first_name} ${user.last_name}`}
-                        width={40}
-                        height={40}
-                      />
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {user.first_name} {user.last_name}
+              <div className="md:hidden">
+                <ul className="divide-y divide-gray-200">
+                  {users.map((user) => (
+                    <li key={user.id} className="py-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-shrink-0">
+                          <Image
+                            className="h-10 w-10 rounded-full"
+                            src={user.avatar || "/default-avatar.png"}
+                            alt={`${user.first_name} ${user.last_name}`}
+                            width={40}
+                            height={40}
+                          />
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {user.email}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {user.first_name} {user.last_name}
+                          </p>
+                          <p className="text-sm text-gray-500 truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleView(user)}
+                          >
+                            View
+                          </Button>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleDelete(user)}
+                          >
+                            Delete
+                          </Button>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleView(user)}
-                      >
-                        View
-                      </Button>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() =>
-                          router.push(`/dashboard/users/${user.id}/edit`)
-                        }
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(user)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
@@ -221,10 +206,11 @@ export default function UserList({ initialUsers }: UserListProps) {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+      <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6">
         <div className="flex flex-1 justify-between sm:hidden">
           <Button
             variant="outline"
+            size="sm"
             onClick={() => handlePageChange(page - 1)}
             disabled={page === 1 || isLoading}
           >
@@ -232,6 +218,7 @@ export default function UserList({ initialUsers }: UserListProps) {
           </Button>
           <Button
             variant="outline"
+            size="sm"
             onClick={() => handlePageChange(page + 1)}
             disabled={page === totalPages || isLoading}
           >
@@ -241,105 +228,111 @@ export default function UserList({ initialUsers }: UserListProps) {
         <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-gray-700">
-              Showing <span className="font-medium">{users.length}</span> users
-              of <span className="font-medium">{initialUsers.total}</span>{" "}
-              results
+              Showing page <span className="font-medium">{page}</span> of{" "}
+              <span className="font-medium">{totalPages}</span>
             </p>
           </div>
-          <div className="flex space-x-2">
-            {[...Array(totalPages)].map((_, i) => (
+          <div>
+            <nav
+              className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+              aria-label="Pagination"
+            >
               <Button
-                key={i + 1}
-                variant={page === i + 1 ? "default" : "outline"}
-                onClick={() => handlePageChange(i + 1)}
-                disabled={isLoading}
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 1 || isLoading}
               >
-                {i + 1}
+                Previous
               </Button>
-            ))}
+              <div className="flex items-center px-4">
+                <span className="text-sm text-gray-700">
+                  {page} / {totalPages}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page === totalPages || isLoading}
+              >
+                Next
+              </Button>
+            </nav>
           </div>
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3 text-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Delete User
-              </h3>
-              <div className="mt-2 px-7 py-3">
-                <p className="text-sm text-gray-500">
-                  Are you sure you want to delete {selectedUser?.first_name}{" "}
-                  {selectedUser?.last_name}? This action cannot be undone.
-                </p>
-              </div>
-              <div className="flex justify-center space-x-4 mt-4">
-                <Button
-                  variant="destructive"
-                  onClick={confirmDelete}
-                  disabled={isLoading}
-                >
-                  Delete
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDeleteModalOpen(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تایید حذف کاربر</DialogTitle>
+            <DialogDescription>
+              آیا مطمئن هستید که می‌خواهید این کاربر را حذف کنید؟ این عمل قابل
+              بازگشت نیست.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              لغو
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              حذف
+            </Button>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {/* View User Dialog */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              <VisuallyHidden>User Details</VisuallyHidden>
-              User Details
-            </DialogTitle>
-            <DialogDescription>
-              Detailed information about the user
-            </DialogDescription>
+            <DialogTitle>اطلاعات کاربر</DialogTitle>
           </DialogHeader>
           {selectedViewUser && (
             <div className="grid gap-4 py-4">
               <div className="flex justify-center">
-                <div className="h-24 w-24 relative">
-                  <Image
-                    src={selectedViewUser.avatar || "/default-avatar.png"}
-                    alt={`${selectedViewUser.first_name} ${selectedViewUser.last_name}`}
-                    className="rounded-full"
-                    fill
-                    style={{ objectFit: "cover" }}
-                  />
+                <Image
+                  className="h-24 w-24 rounded-full"
+                  src={selectedViewUser.avatar || "/default-avatar.png"}
+                  alt={`${selectedViewUser.first_name} ${selectedViewUser.last_name}`}
+                  width={96}
+                  height={96}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">نام</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedViewUser.first_name}
+                  </p>
                 </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <span className="font-medium">First Name:</span>
-                <span className="col-span-3">
-                  {selectedViewUser.first_name}
-                </span>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <span className="font-medium">Last Name:</span>
-                <span className="col-span-3">{selectedViewUser.last_name}</span>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <span className="font-medium">Email:</span>
-                <span className="col-span-3">{selectedViewUser.email}</span>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <span className="font-medium">User ID:</span>
-                <span className="col-span-3">{selectedViewUser.id}</span>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    نام خانوادگی
+                  </p>
+                  <p className="text-sm text-gray-900">
+                    {selectedViewUser.last_name}
+                  </p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-sm font-medium text-gray-500">ایمیل</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedViewUser.email}
+                  </p>
+                </div>
               </div>
             </div>
           )}
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setIsViewModalOpen(false)}>
+              بستن
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

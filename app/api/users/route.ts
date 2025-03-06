@@ -1,25 +1,42 @@
-// app/api/users/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import {
+  getUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+} from "@/lib/user-data-service";
 
 export async function GET(request: NextRequest) {
-  const token = await getToken({ req: request });
-  if (!token) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const url = new URL(request.url);
-  const page = url.searchParams.get("page") || "1";
+  const page = parseInt(url.searchParams.get("page") || "1");
+  const id = url.searchParams.get("id");
+
+  console.log(`API GET request received - page: ${page}, id: ${id || "none"}`);
 
   try {
-    const response = await fetch(`https://reqres.in/api/users?page=${page}`);
-    const data = await response.json();
+    if (id) {
+      console.log(`Fetching user with ID: ${id}`);
+      const user = getUserById(id);
+      if (!user) {
+        console.log(`User with ID ${id} not found`);
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+      console.log(
+        `Successfully fetched user: ${user.first_name} ${user.last_name}`
+      );
+      return NextResponse.json({ data: user });
+    }
 
-    return NextResponse.json(data);
+    console.log(`Fetching users for page ${page}`);
+    const usersData = getUsers(page);
+    console.log(`Successfully fetched ${usersData.data.length} users`);
+    return NextResponse.json(usersData);
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json(
-      { error: "Failed to fetch users" },
+      { error: "Failed to fetch user" },
       { status: 500 }
     );
   }
@@ -34,29 +51,16 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Validate that required fields are present in the body
-    if (!body.name || !body.job) {
-      // Assuming 'name' and 'job' are required fields
+    if (!body.first_name || !body.last_name || !body.email || !body.password) {
       return NextResponse.json(
-        { error: "Name and job are required" },
+        { error: "First name, last name, password, and email are required" },
         { status: 400 }
       );
     }
 
-    const response = await fetch("https://reqres.in/api/users", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+    const newUser = createUser(body);
 
-    if (!response.ok) {
-      throw new Error("Failed to create user");
-    }
-
-    const data = await response.json();
-    return NextResponse.json(data, { status: 201 });
+    return NextResponse.json(newUser, { status: 201 });
   } catch (error) {
     console.error("Error creating user:", error);
     return NextResponse.json(
@@ -73,7 +77,7 @@ export async function PUT(request: NextRequest) {
   }
 
   const url = new URL(request.url);
-  const userId = url.searchParams.get("id"); // Get user ID from search params
+  const userId = url.searchParams.get("id");
 
   if (!userId) {
     return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -82,24 +86,47 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const response = await fetch(`https://reqres.in/api/users/${userId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+    const updatedUser = updateUser(userId, body);
 
-    if (!response.ok) {
-      throw new Error("Failed to update user");
+    if (!updatedUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const data = await response.json();
-    return NextResponse.json(data, { status: 200 });
+    return NextResponse.json(updatedUser, { status: 200 });
   } catch (error) {
     console.error("Error updating user:", error);
     return NextResponse.json(
       { error: "Failed to update user" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const token = await getToken({ req: request });
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const url = new URL(request.url);
+  const userId = url.searchParams.get("id");
+
+  if (!userId) {
+    return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+  }
+
+  try {
+    const success = deleteUser(userId);
+
+    if (!success) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return NextResponse.json(
+      { error: "Failed to delete user" },
       { status: 500 }
     );
   }
