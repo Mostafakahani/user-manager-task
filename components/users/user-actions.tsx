@@ -22,13 +22,13 @@ export function UserActions({ user, onDelete }: UserActionsProps) {
         View
       </Button>
       <Button
-        variant="primary"
+        variant="default"
         size="sm"
         onClick={() => router.push(`/dashboard/users/${user.id}/edit`)}
       >
         Edit
       </Button>
-      <Button variant="danger" size="sm" onClick={() => onDelete?.(user)}>
+      <Button variant="destructive" size="sm" onClick={() => onDelete?.(user)}>
         Delete
       </Button>
     </div>

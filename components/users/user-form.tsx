@@ -4,6 +4,8 @@ import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { User, UserFormData } from "@/types/user";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface UserFormProps {
   user?: User;
@@ -49,7 +51,7 @@ export default function UserForm({ user, isEditing = false }: UserFormProps) {
     setSuccess("");
 
     try {
-      const url = isEditing ? `/api/users/${user?.id}` : "/api/users";
+      const url = isEditing ? `/api/users?id=${user?.id}` : "/api/users";
       const method = isEditing ? "PUT" : "POST";
 
       const response = await fetch(url, {
@@ -174,14 +176,14 @@ export default function UserForm({ user, isEditing = false }: UserFormProps) {
               >
                 First name
               </label>
-              <input
+              <Input
                 type="text"
                 name="first_name"
                 id="first_name"
                 value={formData.first_name}
                 onChange={handleChange}
                 required
-                className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                className="mt-1"
               />
             </div>
 
@@ -192,14 +194,14 @@ export default function UserForm({ user, isEditing = false }: UserFormProps) {
               >
                 Last name
               </label>
-              <input
+              <Input
                 type="text"
                 name="last_name"
                 id="last_name"
                 value={formData.last_name}
                 onChange={handleChange}
                 required
-                className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                className="mt-1"
               />
             </div>
 
@@ -210,14 +212,14 @@ export default function UserForm({ user, isEditing = false }: UserFormProps) {
               >
                 Email address
               </label>
-              <input
+              <Input
                 type="email"
                 name="email"
                 id="email"
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                className="mt-1"
               />
             </div>
 
@@ -228,14 +230,14 @@ export default function UserForm({ user, isEditing = false }: UserFormProps) {
               >
                 Avatar URL
               </label>
-              <input
+              <Input
                 type="url"
                 name="avatar"
                 id="avatar"
                 value={formData.avatar || ""}
                 onChange={handleChange}
                 placeholder="https://example.com/avatar.jpg"
-                className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                className="mt-1"
               />
               <p className="mt-1 text-sm text-gray-500">
                 Leave blank to use default avatar
@@ -244,18 +246,14 @@ export default function UserForm({ user, isEditing = false }: UserFormProps) {
           </div>
 
           <div className="flex justify-end">
-            <button
+            <Button
+              variant="outline"
               type="button"
               onClick={() => router.back()}
-              className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
-            >
+            </Button>
+            <Button type="submit" disabled={isLoading} className="ml-3">
               {isLoading ? (
                 <span className="flex items-center">
                   <svg
@@ -285,7 +283,7 @@ export default function UserForm({ user, isEditing = false }: UserFormProps) {
               ) : (
                 "Create User"
               )}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

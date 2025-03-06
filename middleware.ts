@@ -26,12 +26,12 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(path)
   );
 
-  console.log("Middleware Check:", {
-    pathname,
-    isAuthenticated,
-    isAuthPage,
-    token: token ? "exists" : "none",
-  });
+  // console.log("Middleware Check:", {
+  //   pathname,
+  //   isAuthenticated,
+  //   isAuthPage,
+  //   token: token ? "exists" : "none",
+  // });
 
   if (isAuthPage) {
     if (isAuthenticated) {

@@ -3,6 +3,7 @@ import { fetchUsers } from "@/lib/api";
 import UserList from "@/components/users/user-list";
 import { Metadata } from "next";
 import Link from "next/link";
+import { Input } from "@/components/ui/input";
 
 export const metadata: Metadata = {
   title: "Users Management",
@@ -17,11 +18,11 @@ export default async function UsersPage() {
       <div className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <h1 className="text-2xl font-semibold text-gray-900">Users</h1>
             <Link
               href="/dashboard/users/new"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-full sm:w-auto justify-center"
             >
               Add User
             </Link>
@@ -29,9 +30,9 @@ export default async function UsersPage() {
 
           {/* Search and Filters */}
           <div className="bg-white rounded-lg shadow mb-6">
-            <div className="p-4 border-b border-gray-200">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex-1 max-w-sm">
+            <div className="p-4">
+              <div className="flex flex-col gap-4">
+                <div className="w-full">
                   <label htmlFor="search" className="sr-only">
                     Search users
                   </label>
@@ -50,24 +51,25 @@ export default async function UsersPage() {
                         />
                       </svg>
                     </div>
-                    <input
+                    <Input
                       type="search"
                       name="search"
                       id="search"
-                      className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                      placeholder="Search users..."
+                      autoComplete="false"
+                      className="!focus:ring-0 !ring-0 block w-full pl-10 sm:text-sm rounded-md !border-none !shadow-none"
+                      placeholder="Search users... (Fake)"
                     />
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <select className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
+                  <select className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md w-full sm:w-auto">
                     <option value="">All Status</option>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                   </select>
                   <button
                     type="button"
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-full sm:w-auto"
                   >
                     <svg
                       className="-ml-1 mr-2 h-5 w-5 text-gray-500"
@@ -97,32 +99,28 @@ export default async function UsersPage() {
     );
   } catch {
     return (
-      <div className="py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-          <div className="bg-red-50 border-l-4 border-red-400 p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">
-                  Error loading users
-                </h3>
-                <div className="mt-2 text-sm text-red-700">
-                  <p>Unable to fetch user data. Please try again later.</p>
-                </div>
-              </div>
+      <div className="bg-red-50 border-l-4 border-red-400 p-4">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg
+              className="h-5 w-5 text-red-400"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-red-800">
+              Error loading users
+            </h3>
+            <div className="mt-2 text-sm text-red-700">
+              <p>Unable to fetch user data. Please try again later.</p>
             </div>
           </div>
         </div>

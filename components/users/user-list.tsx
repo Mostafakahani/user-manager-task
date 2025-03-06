@@ -3,9 +3,26 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import Link from "next/link";
 import { User } from "@/types/user";
 import { fetchUsers, deleteUser } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface UserListProps {
   initialUsers: {
@@ -25,6 +42,9 @@ export default function UserList({ initialUsers }: UserListProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedViewUser, setSelectedViewUser] = useState<User | null>(null);
+  const router = useRouter();
 
   const loadUsers = async (pageNum: number) => {
     setIsLoading(true);
@@ -67,116 +87,156 @@ export default function UserList({ initialUsers }: UserListProps) {
     }
   };
 
+  const handleView = (user: User) => {
+    setSelectedViewUser(user);
+    setIsViewModalOpen(true);
+  };
+
   return (
     <div className="bg-white rounded-lg shadow">
-      <div className="overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                User
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Email
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {isLoading ? (
-              <tr>
-                <td colSpan={3} className="px-6 py-4 text-center">
-                  <div className="flex justify-center items-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 relative">
-                        <Image
-                          src={user.avatar}
-                          alt={`${user.first_name} ${user.last_name}`}
-                          fill
-                          sizes="40px"
-                          className="rounded-full object-cover"
-                          priority={false}
-                        />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
+      <div className="relative">
+        <div className="overflow-x-auto -mx-4 sm:-mx-6 lg:-mx-8">
+          <div className="inline-block min-w-full align-middle px-4 sm:px-6 lg:px-8">
+            <div className="overflow-hidden">
+              {/* Desktop View */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 flex-shrink-0">
+                              <Image
+                                className="h-10 w-10 rounded-full"
+                                src={user.avatar || "/default-avatar.png"}
+                                alt={`${user.first_name} ${user.last_name}`}
+                                width={40}
+                                height={40}
+                              />
+                            </div>
+                            <div className="ml-4">
+                              <div className="font-medium text-gray-900">
+                                {user.first_name} {user.last_name}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleView(user)}
+                            >
+                              View
+                            </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() =>
+                                router.push(`/dashboard/users/${user.id}/edit`)
+                              }
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDelete(user)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile View */}
+              <div className="md:hidden space-y-4">
+                {users.map((user) => (
+                  <div
+                    key={user.id}
+                    className="bg-white p-4 rounded-lg shadow space-y-3"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Image
+                        className="h-10 w-10 rounded-full"
+                        src={user.avatar || "/default-avatar.png"}
+                        alt={`${user.first_name} ${user.last_name}`}
+                        width={40}
+                        height={40}
+                      />
+                      <div>
+                        <div className="font-medium text-gray-900">
                           {user.first_name} {user.last_name}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {user.email}
                         </div>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{user.email}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <Link
-                      href={`/dashboard/users/${user.id}`}
-                      className="text-blue-600 hover:text-blue-900 mr-4"
-                    >
-                      View
-                    </Link>
-                    <Link
-                      href={`/dashboard/users/${user.id}/edit`}
-                      className="text-indigo-600 hover:text-indigo-900 mr-4"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(user)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleView(user)}
+                      >
+                        View
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() =>
+                          router.push(`/dashboard/users/${user.id}/edit`)
+                        }
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(user)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Pagination */}
       <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
         <div className="flex flex-1 justify-between sm:hidden">
-          <button
+          <Button
+            variant="outline"
             onClick={() => handlePageChange(page - 1)}
-            disabled={page === 1}
-            className={`relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${
-              page === 1 ? "text-gray-300" : "text-gray-700 hover:bg-gray-50"
-            }`}
+            disabled={page === 1 || isLoading}
           >
             Previous
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => handlePageChange(page + 1)}
-            disabled={page === totalPages}
-            className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${
-              page === totalPages
-                ? "text-gray-300"
-                : "text-gray-700 hover:bg-gray-50"
-            }`}
+            disabled={page === totalPages || isLoading}
           >
             Next
-          </button>
+          </Button>
         </div>
         <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
           <div>
@@ -186,97 +246,26 @@ export default function UserList({ initialUsers }: UserListProps) {
               results
             </p>
           </div>
-          <div>
-            <nav
-              className="isolate inline-flex -space-x-px rounded-md shadow-sm"
-              aria-label="Pagination"
-            >
-              <button
-                onClick={() => handlePageChange(page - 1)}
-                disabled={page === 1}
-                className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${
-                  page === 1 ? "cursor-not-allowed" : ""
-                }`}
+          <div className="flex space-x-2">
+            {[...Array(totalPages)].map((_, i) => (
+              <Button
+                key={i + 1}
+                variant={page === i + 1 ? "default" : "outline"}
+                onClick={() => handlePageChange(i + 1)}
+                disabled={isLoading}
               >
-                <span className="sr-only">Previous</span>
-                <svg
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i + 1}
-                  onClick={() => handlePageChange(i + 1)}
-                  className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                    page === i + 1
-                      ? "bg-blue-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2"
-                      : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                onClick={() => handlePageChange(page + 1)}
-                disabled={page === totalPages}
-                className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${
-                  page === totalPages ? "cursor-not-allowed" : ""
-                }`}
-              >
-                <span className="sr-only">Next</span>
-                <svg
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            </nav>
+                {i + 1}
+              </Button>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <div
-          className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full"
-          onClick={() => setIsDeleteModalOpen(false)}
-        >
-          <div
-            className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3 text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                <svg
-                  className="h-6 w-6 text-red-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  ></path>
-                </svg>
-              </div>
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Delete User
               </h3>
@@ -286,24 +275,73 @@ export default function UserList({ initialUsers }: UserListProps) {
                   {selectedUser?.last_name}? This action cannot be undone.
                 </p>
               </div>
-              <div className="items-center px-4 py-3">
-                <button
+              <div className="flex justify-center space-x-4 mt-4">
+                <Button
+                  variant="destructive"
                   onClick={confirmDelete}
-                  className="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-1/3 shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 mr-2"
+                  disabled={isLoading}
                 >
                   Delete
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={() => setIsDeleteModalOpen(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-900 text-base font-medium rounded-md w-1/3 shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* View User Dialog */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              <VisuallyHidden>User Details</VisuallyHidden>
+              User Details
+            </DialogTitle>
+            <DialogDescription>
+              Detailed information about the user
+            </DialogDescription>
+          </DialogHeader>
+          {selectedViewUser && (
+            <div className="grid gap-4 py-4">
+              <div className="flex justify-center">
+                <div className="h-24 w-24 relative">
+                  <Image
+                    src={selectedViewUser.avatar || "/default-avatar.png"}
+                    alt={`${selectedViewUser.first_name} ${selectedViewUser.last_name}`}
+                    className="rounded-full"
+                    fill
+                    style={{ objectFit: "cover" }}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <span className="font-medium">First Name:</span>
+                <span className="col-span-3">
+                  {selectedViewUser.first_name}
+                </span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <span className="font-medium">Last Name:</span>
+                <span className="col-span-3">{selectedViewUser.last_name}</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <span className="font-medium">Email:</span>
+                <span className="col-span-3">{selectedViewUser.email}</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <span className="font-medium">User ID:</span>
+                <span className="col-span-3">{selectedViewUser.id}</span>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

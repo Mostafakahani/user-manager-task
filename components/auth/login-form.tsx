@@ -3,6 +3,8 @@ import { useState, FormEvent } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function LoginForm() {
   const { data: session } = useSession();
@@ -108,7 +110,7 @@ export default function LoginForm() {
             <label htmlFor="email-address" className="sr-only">
               Email address
             </label>
-            <input
+            <Input
               id="email-address"
               name="email"
               type="email"
@@ -116,7 +118,6 @@ export default function LoginForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
               placeholder="Email address"
             />
           </div>
@@ -124,7 +125,7 @@ export default function LoginForm() {
             <label htmlFor="password" className="sr-only">
               Password
             </label>
-            <input
+            <Input
               id="password"
               name="password"
               type="password"
@@ -132,7 +133,6 @@ export default function LoginForm() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
               placeholder="Password"
             />
           </div>
@@ -165,11 +165,7 @@ export default function LoginForm() {
         </div>
 
         <div className="flex flex-col space-y-4">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
-          >
+          <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading ? (
               <svg
                 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
@@ -194,7 +190,7 @@ export default function LoginForm() {
             ) : (
               "Sign in with Email"
             )}
-          </button>
+          </Button>
 
           {/* دکمه لاگین با Auth0 */}
           <div className="relative">
@@ -208,10 +204,11 @@ export default function LoginForm() {
             </div>
           </div>
 
-          <button
+          <Button
+            variant="outline"
             type="button"
             onClick={handleAuth0Login}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            className="w-full"
           >
             <svg
               className="w-5 h-5 mr-2"
@@ -225,7 +222,7 @@ export default function LoginForm() {
               />
             </svg>
             Sign in with Auth0
-          </button>
+          </Button>
         </div>
       </form>
     </div>
