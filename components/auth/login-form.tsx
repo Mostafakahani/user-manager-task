@@ -20,7 +20,6 @@ export default function LoginForm() {
     setError("");
 
     try {
-      // ابتدا با Credentials تلاش می‌کنیم
       const result = await signIn("credentials", {
         email,
         password,
@@ -33,7 +32,7 @@ export default function LoginForm() {
       }
 
       if (result?.ok) {
-        router.push("/dashboard");
+        window.location.href = "/dashboard";
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -55,7 +54,6 @@ export default function LoginForm() {
     }
   };
 
-  // اگر کاربر لاگین شده است، به داشبورد ریدایرکت شود
   if (session) {
     router.push("/dashboard");
     return null;
@@ -192,7 +190,6 @@ export default function LoginForm() {
             )}
           </Button>
 
-          {/* دکمه لاگین با Auth0 */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>

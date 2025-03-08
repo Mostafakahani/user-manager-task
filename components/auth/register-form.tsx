@@ -20,7 +20,6 @@ export default function RegisterForm() {
     setIsLoading(true);
     setError("");
 
-    // Basic validation
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       setIsLoading(false);
@@ -28,7 +27,6 @@ export default function RegisterForm() {
     }
 
     try {
-      // Register user with reqres.in API
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
@@ -45,10 +43,9 @@ export default function RegisterForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Registration failed");
+        throw new Error(data.error || "Registration error");
       }
 
-      // Redirect to login page after successful registration
       router.push("/auth/login?registered=true");
     } catch (error) {
       console.error("Registration error:", error);

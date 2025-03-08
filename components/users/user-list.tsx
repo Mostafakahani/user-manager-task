@@ -1,4 +1,3 @@
-// components/users/user-list.tsx
 "use client";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
@@ -77,12 +76,10 @@ export default function UserList({ initialUsers }: UserListProps) {
         (session as any)?.accessToken
       );
 
-      // Remove user from the local state
       setUsers(users.filter((user) => user.id !== selectedUser.id));
       setIsDeleteModalOpen(false);
       setSelectedUser(null);
 
-      // Reload users to update pagination info
       loadUsers();
     } catch (error) {
       console.error("Error deleting user:", error);
@@ -100,7 +97,6 @@ export default function UserList({ initialUsers }: UserListProps) {
         <div className="overflow-x-auto -mx-4 sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full align-middle px-4 sm:px-6 lg:px-8">
             <div className="overflow-hidden">
-              {/* Desktop View */}
               <div className="hidden md:block overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -156,7 +152,6 @@ export default function UserList({ initialUsers }: UserListProps) {
                 </Table>
               </div>
 
-              {/* Mobile View */}
               <div className="md:hidden">
                 <ul className="divide-y divide-gray-200">
                   {users.map((user) => (
@@ -205,7 +200,6 @@ export default function UserList({ initialUsers }: UserListProps) {
         </div>
       </div>
 
-      {/* Pagination */}
       <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6">
         <div className="flex flex-1 justify-between sm:hidden">
           <Button
@@ -263,14 +257,13 @@ export default function UserList({ initialUsers }: UserListProps) {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>تایید حذف کاربر</DialogTitle>
+            <DialogTitle>Confirm User Deletion</DialogTitle>
             <DialogDescription>
-              آیا مطمئن هستید که می‌خواهید این کاربر را حذف کنید؟ این عمل قابل
-              بازگشت نیست.
+              Are you sure you want to delete this user? This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2">
@@ -278,20 +271,19 @@ export default function UserList({ initialUsers }: UserListProps) {
               variant="outline"
               onClick={() => setIsDeleteModalOpen(false)}
             >
-              لغو
+              Cancel
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>
-              حذف
+              Delete
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* View User Dialog */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>اطلاعات کاربر</DialogTitle>
+            <DialogTitle>User Information</DialogTitle>
           </DialogHeader>
           {selectedViewUser && (
             <div className="grid gap-4 py-4">
@@ -306,21 +298,21 @@ export default function UserList({ initialUsers }: UserListProps) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">نام</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    First Name
+                  </p>
                   <p className="text-sm text-gray-900">
                     {selectedViewUser.first_name}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    نام خانوادگی
-                  </p>
+                  <p className="text-sm font-medium text-gray-500">Last Name</p>
                   <p className="text-sm text-gray-900">
                     {selectedViewUser.last_name}
                   </p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-sm font-medium text-gray-500">ایمیل</p>
+                  <p className="text-sm font-medium text-gray-500">Email</p>
                   <p className="text-sm text-gray-900">
                     {selectedViewUser.email}
                   </p>
@@ -330,7 +322,7 @@ export default function UserList({ initialUsers }: UserListProps) {
           )}
           <div className="flex justify-end">
             <Button variant="outline" onClick={() => setIsViewModalOpen(false)}>
-              بستن
+              Close
             </Button>
           </div>
         </DialogContent>

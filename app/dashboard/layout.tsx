@@ -1,10 +1,11 @@
 import React from "react";
 import { Metadata } from "next";
 
-import { LogOut, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Navigation from "@/components/navigation";
+import LogoutButton from "@/components/logout-button";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -25,12 +26,7 @@ export default function DashboardLayout({
             <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
           </div>
           <Navigation />
-          <div className="p-4 border-t border-gray-200">
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <LogOut className="h-5 w-5" />
-              <span>Logout</span>
-            </Button>
-          </div>
+          <LogoutButton />
         </div>
       </aside>
 
@@ -51,15 +47,7 @@ export default function DashboardLayout({
                     <h2 className="text-lg font-semibold">Admin Panel</h2>
                   </div>
                   <Navigation />
-                  <div className="p-4 border-t border-gray-200">
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start gap-2"
-                    >
-                      <LogOut className="h-5 w-5" />
-                      <span>Logout</span>
-                    </Button>
-                  </div>
+                  <LogoutButton />
                 </div>
               </SheetContent>
             </Sheet>

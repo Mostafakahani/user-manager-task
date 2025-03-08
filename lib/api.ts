@@ -4,10 +4,11 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 console.log("API_BASE_URL:", API_BASE_URL);
 
 export async function fetchUsers(
-  // page: number = 1,
+  page: number = 1,
+  perPage: number = 6,
   token?: string
 ): Promise<UserResponse> {
-  const url = `${API_BASE_URL}/api/users`;
+  const url = `${API_BASE_URL}/api/users?page=${page}&per_page=${perPage}`;
   console.log("Fetching users from:", url);
 
   try {

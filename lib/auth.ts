@@ -4,6 +4,12 @@ import Auth0Provider from "next-auth/providers/auth0";
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { User, Session } from "next-auth";
 import { checkUserCredentials } from "./user-data-service";
+import {
+  //   ExtendedJWT,
+  //   ExtendedSession,
+  loginCredentialsSchema,
+} from "@/types/auth";
+import { validateData } from "./validation";
 
 // const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -43,13 +49,29 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // اعتبارسنجی داده‌های ورودی با Zod
+        const validationResult = validateData(loginCredentialsSchema, {
+          email: credentials.email,
+          password: credentials.password,
+        });
+
+        if (!validationResult.success) {
+          console.error("اعتبارسنجی ناموفق:", validationResult.errors);
+          return null;
+        }
+
         const user = await checkUserCredentials(
-          credentials.email,
-          credentials.password
+          validationResult.data.email,
+          validationResult.data.password
         );
 
         if (user) {
-          return user;
+          return {
+            id: user.id.toString(),
+            email: user.email,
+            name: `${user.first_name} ${user.last_name}`,
+            image: user.avatar,
+          };
         }
         return null;
       },
@@ -58,6 +80,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/auth/signin",
     signOut: "/auth/logout",
+    newUser: "/auth/register",
     error: "/auth/error",
   },
   callbacks: {

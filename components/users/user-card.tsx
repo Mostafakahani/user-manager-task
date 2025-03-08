@@ -15,7 +15,7 @@ export default function UserCard({ user, onDelete }: UserCardProps) {
         <div className="flex items-center">
           <div className="relative flex-shrink-0 h-16 w-16">
             <Image
-              src={user.avatar}
+              src={user.avatar || ""}
               alt={`${user.first_name} ${user.last_name}`}
               fill
               className="rounded-full object-cover"

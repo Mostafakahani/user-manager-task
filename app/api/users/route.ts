@@ -7,36 +7,30 @@ import {
   updateUser,
   deleteUser,
 } from "@/lib/user-data-service";
+import { validateRequest } from "@/lib/validation";
+import { userFormDataSchema } from "@/types/user";
 
-export async function GET(request: NextRequest) {
-  const url = new URL(request.url);
-  const page = parseInt(url.searchParams.get("page") || "1");
-  const id = url.searchParams.get("id");
-
-  console.log(`API GET request received - page: ${page}, id: ${id || "none"}`);
-
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    const page = parseInt(searchParams.get("page") || "1");
+    const perPage = parseInt(searchParams.get("per_page") || "6");
+
     if (id) {
-      console.log(`Fetching user with ID: ${id}`);
-      const user = getUserById(id);
+      const user = await getUserById(id);
       if (!user) {
-        console.log(`User with ID ${id} not found`);
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
-      console.log(
-        `Successfully fetched user: ${user.first_name} ${user.last_name}`
-      );
       return NextResponse.json({ data: user });
     }
 
-    console.log(`Fetching users for page ${page}`);
-    const usersData = getUsers(page);
-    console.log(`Successfully fetched ${usersData.data.length} users`);
-    return NextResponse.json(usersData);
+    const users = await getUsers(page, perPage);
+    return NextResponse.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json(
-      { error: "Failed to fetch user" },
+      { error: "Error processing request" },
       { status: 500 }
     );
   }
@@ -48,19 +42,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const validationResult = await validateRequest(userFormDataSchema, request);
+  if (validationResult instanceof NextResponse) {
+    return validationResult;
+  }
+
   try {
-    const body = await request.json();
-
-    if (!body.first_name || !body.last_name || !body.email || !body.password) {
-      return NextResponse.json(
-        { error: "First name, last name, password, and email are required" },
-        { status: 400 }
-      );
-    }
-
-    const newUser = createUser(body);
-
-    return NextResponse.json(newUser, { status: 201 });
+    const { data } = validationResult;
+    console.log("Creating new user:", data.email);
+    const newUser = await createUser(data);
+    console.log(`User created successfully with ID: ${newUser.id}`);
+    return NextResponse.json({ data: newUser }, { status: 201 });
   } catch (error) {
     console.error("Error creating user:", error);
     return NextResponse.json(
@@ -77,22 +69,26 @@ export async function PUT(request: NextRequest) {
   }
 
   const url = new URL(request.url);
-  const userId = url.searchParams.get("id");
-
-  if (!userId) {
+  const id = url.searchParams.get("id");
+  if (!id) {
     return NextResponse.json({ error: "User ID is required" }, { status: 400 });
   }
 
+  const validationResult = await validateRequest(userFormDataSchema, request);
+  if (validationResult instanceof NextResponse) {
+    return validationResult;
+  }
+
   try {
-    const body = await request.json();
-
-    const updatedUser = updateUser(userId, body);
-
+    const { data } = validationResult;
+    console.log(`Updating user with ID: ${id}`);
+    const updatedUser = await updateUser(id, data);
     if (!updatedUser) {
+      console.log(`User with ID ${id} not found for update`);
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
-    return NextResponse.json(updatedUser, { status: 200 });
+    console.log(`User updated successfully: ${updatedUser.email}`);
+    return NextResponse.json({ data: updatedUser });
   } catch (error) {
     console.error("Error updating user:", error);
     return NextResponse.json(
@@ -109,20 +105,20 @@ export async function DELETE(request: NextRequest) {
   }
 
   const url = new URL(request.url);
-  const userId = url.searchParams.get("id");
-
-  if (!userId) {
+  const id = url.searchParams.get("id");
+  if (!id) {
     return NextResponse.json({ error: "User ID is required" }, { status: 400 });
   }
 
   try {
-    const success = deleteUser(userId);
-
+    console.log(`Deleting user with ID: ${id}`);
+    const success = await deleteUser(id);
     if (!success) {
+      console.log(`User with ID ${id} not found for deletion`);
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
-    return NextResponse.json({ success: true }, { status: 200 });
+    console.log(`User deleted successfully: ${id}`);
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting user:", error);
     return NextResponse.json(

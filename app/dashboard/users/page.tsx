@@ -19,7 +19,6 @@ export default async function UsersPage() {
     initialUsers = await fetchUsers();
   } catch (error) {
     console.error("Error fetching users:", error);
-    // در صورت خطا، با آرایه خالی ادامه می‌دهیم
   }
 
   return (

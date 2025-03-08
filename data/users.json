@@ -1,24 +1,16 @@
 {
   "page": 1,
   "per_page": 6,
-  "total": 2,
+  "total": 1,
   "total_pages": 1,
   "data": [
-    {
-      "first_name": "aaa",
-      "last_name": "aa",
-      "email": "kahanimostafa83@gmail.com",
-      "avatar": "https://reqres.in/img/faces/1-image.jpg",
-      "password": "",
-      "id": 1
-    },
     {
       "first_name": "مصطفی",
       "last_name": "کاهانی",
       "email": "kahanimostafa83@gmail.com",
+      "password": "Aa12345@#",
       "avatar": "https://reqres.in/img/faces/2-image.jpg",
-      "password": "1212",
-      "id": 2
+      "id": 5
     }
   ]
 }
