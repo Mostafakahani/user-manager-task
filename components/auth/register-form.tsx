@@ -99,6 +99,7 @@ export default function RegisterForm() {
                 name="first-name"
                 type="text"
                 required
+                data-testid="first-name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
               />
@@ -118,6 +119,7 @@ export default function RegisterForm() {
                 name="last-name"
                 type="text"
                 required
+                data-testid="last-name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
               />
@@ -139,6 +141,7 @@ export default function RegisterForm() {
               type="email"
               autoComplete="email"
               required
+              data-testid="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -159,6 +162,7 @@ export default function RegisterForm() {
               type="password"
               autoComplete="new-password"
               required
+              data-testid="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -179,6 +183,7 @@ export default function RegisterForm() {
               type="password"
               autoComplete="new-password"
               required
+              data-testid="confirm-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />

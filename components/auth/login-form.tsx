@@ -32,7 +32,7 @@ export default function LoginForm() {
       }
 
       if (result?.ok) {
-        window.location.href = "/dashboard";
+        router.push("/dashboard");
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -114,6 +114,7 @@ export default function LoginForm() {
               type="email"
               autoComplete="email"
               required
+              data-testid="email-address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email address"
@@ -129,6 +130,7 @@ export default function LoginForm() {
               type="password"
               autoComplete="current-password"
               required
+              data-testid="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
