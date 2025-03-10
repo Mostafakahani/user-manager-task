@@ -160,15 +160,24 @@ export const deleteUser = async (id: string): Promise<boolean> => {
 
 export async function checkUserCredentials(
   email: string,
-  password: string
+  password: string,
+  isAuth0Login: boolean = false
 ): Promise<User | null> {
   try {
     const fileContent = await fs.readFile(DATA_FILE_PATH, "utf-8");
     const usersData: UserResponse = JSON.parse(fileContent);
 
-    const user = usersData.data.find(
-      (u) => u.email === email && u.password === password
-    );
+    const user = usersData.data.find((u) => {
+      if (isAuth0Login && u.password.startsWith("auth0_")) {
+        return u.email === email;
+      }
+
+      if (!isAuth0Login && !u.password.startsWith("auth0_")) {
+        return u.email === email && u.password === password;
+      }
+
+      return false;
+    });
 
     return user || null;
   } catch (error) {

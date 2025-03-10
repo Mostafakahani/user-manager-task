@@ -3,7 +3,11 @@ import { NextAuthOptions } from "next-auth";
 import Auth0Provider from "next-auth/providers/auth0";
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { User, Session } from "next-auth";
-import { checkUserCredentials } from "./user-data-service";
+import {
+  checkUserCredentials,
+  createUser,
+  getUserByEmail,
+} from "./user-data-service";
 import {
   //   ExtendedJWT,
   //   ExtendedSession,
@@ -27,13 +31,11 @@ export const authOptions: NextAuthOptions = {
     Auth0Provider({
       clientId: process.env.AUTH0_CLIENT_ID!,
       clientSecret: process.env.AUTH0_CLIENT_SECRET!,
-      issuer: process.env.AUTH0_ISSUER!,
+      issuer: `https://${process.env.AUTH0_DOMAIN}`,
       authorization: {
         params: {
           prompt: "login",
-          response_type: "code",
           scope: "openid profile email",
-          redirect_uri: "http://localhost:3000/api/auth/callback/auth0",
         },
       },
     }),
@@ -49,7 +51,6 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // اعتبارسنجی داده‌های ورودی با Zod
         const validationResult = validateData(loginCredentialsSchema, {
           email: credentials.email,
           password: credentials.password,
@@ -84,13 +85,45 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   callbacks: {
-    async jwt({ token, account }) {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "auth0") {
+        try {
+          const existingUser = await getUserByEmail(user.email!);
+
+          if (!existingUser) {
+            await createUser({
+              first_name:
+                (profile as any).given_name || user.name?.split(" ")[0] || "",
+              last_name:
+                (profile as any).family_name || user.name?.split(" ")[1] || "",
+              email: user.email!,
+              password: `auth0_${Date.now()}`,
+              avatar: user.image || `https://reqres.in/img/faces/2-image.jpg`,
+            });
+          } else if (!existingUser.password.startsWith("auth0_")) {
+            console.error("This email is already registered with credentials");
+            return false;
+          }
+          return true;
+        } catch (error) {
+          console.error("Error saving Auth0 user:", error);
+          return false;
+        }
+      }
+      return true;
+    },
+
+    async jwt({ token, account, profile }) {
       if (account) {
         token.accessToken = account.access_token;
         token.idToken = account.id_token;
+        if (profile) {
+          token.auth0Profile = profile;
+        }
       }
       return token;
     },
+
     async session({ session, token }) {
       return {
         ...session,
@@ -101,6 +134,7 @@ export const authOptions: NextAuthOptions = {
         },
       } as CustomSession;
     },
+
     async redirect({ url, baseUrl }) {
       if (url.startsWith(baseUrl)) return url;
       if (url.startsWith("/")) return `${baseUrl}${url}`;

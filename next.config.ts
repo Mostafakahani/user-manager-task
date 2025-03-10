@@ -11,8 +11,21 @@ const nextConfig: NextConfig = {
       process.env.AUTH0_ISSUER || "https://dev-s6clz2lv.eu.auth0.com",
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || "your_random_string_here",
   },
+
   images: {
-    domains: ["reqres.in", "s.gravatar.com"],
+    domains: ["lh3.googleusercontent.com", "reqres.in"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/a/**",
+      },
+      {
+        protocol: "https",
+        hostname: "reqres.in",
+        pathname: "/img/faces/**",
+      },
+    ],
   },
 };
 

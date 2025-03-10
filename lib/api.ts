@@ -1,14 +1,14 @@
 import { User, UserResponse, UserFormData } from "@/types/user";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
-console.log("API_BASE_URL:", API_BASE_URL);
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+console.log("API_BASE_URL:", BASE_URL);
 
 export async function fetchUsers(
   page: number = 1,
   perPage: number = 6,
   token?: string
 ): Promise<UserResponse> {
-  const url = `${API_BASE_URL}/api/users?page=${page}&per_page=${perPage}`;
+  const url = `${BASE_URL}/api/users?page=${page}&per_page=${perPage}`;
   console.log("Fetching users from:", url);
 
   try {
@@ -41,7 +41,7 @@ export async function fetchUser(
   id: string,
   token?: string
 ): Promise<{ data: User }> {
-  const response = await fetch(`${API_BASE_URL}/api/users?id=${id}`, {
+  const response = await fetch(`${BASE_URL}/api/users?id=${id}`, {
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
@@ -58,7 +58,7 @@ export async function createUserApi(
   userData: UserFormData,
   token?: string
 ): Promise<User> {
-  const response = await fetch(`${API_BASE_URL}/api/users`, {
+  const response = await fetch(`${BASE_URL}/api/users`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -80,7 +80,7 @@ export async function updateUserApi(
   userData: UserFormData,
   token?: string
 ): Promise<User> {
-  const response = await fetch(`${API_BASE_URL}/api/users?id=${id}`, {
+  const response = await fetch(`${BASE_URL}/api/users?id=${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -98,7 +98,7 @@ export async function updateUserApi(
 }
 
 export async function deleteUser(id: string, token?: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/users?id=${id}`, {
+  const response = await fetch(`${BASE_URL}/api/users?id=${id}`, {
     method: "DELETE",
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
